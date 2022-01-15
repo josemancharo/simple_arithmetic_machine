@@ -1,15 +1,18 @@
 Number = @{ Integer ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ Integer)? }
     Integer = _{ ("+" | "-")? ~ ASCII_DIGIT+ }
 
-Operation = _{ Add | Subtract | Multiply | Divide | Power }
+Operation = _{ Add | Subtract | Multiply | Divide | Power | Modulus }
     Add      = { "+" }
     Subtract = { "-" }
     Multiply = { "*" }
     Divide   = { "/" }
     Power    = { "^" }
+    Modulus  = { "%" }
 
 Expression = { Term ~ (Operation ~ Term)* }
-Term = _{ Number | "(" ~ Expression ~ ")" }
+Term = _{ Number | Variable | "(" ~ Expression ~ ")"}
+
+Variable = { ASCII_ALPHA+ ~ ASCII_ALPHANUMERIC* }
 
 Calculation = _{ SOI ~ Expression ~ EOI }
 

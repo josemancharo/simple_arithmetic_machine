@@ -6,6 +6,8 @@ pub enum Operation {
     Mul,
     Div,
     Pow,
-    Start,
-    End,
+    Mod,
+    StartBlock,
+    EndBlock,
+    LoadVar(u64),
 }

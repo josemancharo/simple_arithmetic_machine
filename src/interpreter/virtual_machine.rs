@@ -1,15 +1,23 @@
+use std::collections::HashMap;
+
 use crate::ast::operations::Operation;
+
+use super::constants::generate_constants;
 
 pub struct SamVM {
     stacks: Vec<Vec<f64>>,
-    current_stack: usize
+    current_stack: usize,
+    previous_command: Option<Operation>,
+    constants: HashMap<u64, f64>
 }
 
 impl SamVM {
     pub fn new() -> SamVM {
         return SamVM {
             stacks: vec![vec![]],
-            current_stack: 0
+            current_stack: 0,
+            previous_command: None,
+            constants: generate_constants()
         }
     }
     pub fn interpret(&mut self, commands: Vec<Operation>) -> f64 {
@@ -49,13 +57,22 @@ impl SamVM {
                 let a = self.stacks[self.current_stack].pop().unwrap();
                 self.stacks[self.current_stack].push(a.powf(b));
             }
-            Operation::Start => {
+            Operation::Mod => {
+                let b = self.stacks[self.current_stack].pop().unwrap();
+                let a = self.stacks[self.current_stack].pop().unwrap();
+                self.stacks[self.current_stack].push(a % b);
+            }
+            Operation::LoadVar(key) => {
+                let val = self.constants.get(&key).unwrap();
+                self.stacks[self.current_stack].push(*val);
+            } 
+            Operation::StartBlock => {
                 if self.current_stack != 0 {
                     self.stacks.push(vec![]);
                     self.current_stack += 1;
                 }
             }
-            Operation::End => {
+            Operation::EndBlock => {
                 if self.current_stack != 0 {
                     let result = self.stacks[self.current_stack].pop().unwrap();
                     self.stacks.pop();
@@ -64,6 +81,7 @@ impl SamVM {
                 }
             }
         }
+        self.previous_command = Some(command);
     }
 }
 

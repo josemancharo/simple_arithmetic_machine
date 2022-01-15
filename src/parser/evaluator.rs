@@ -1,15 +1,16 @@
 use crate::ast::{block::AstBlock, operations::Operation};
 use pest::{
-    iterators::{Pair},
+    iterators::Pair,
     Parser,
 };
+use crate::util::hash_str::hash_str;
 
 use super::grammar::{SamParser, SamRule};
 
 pub fn eval(text: &str) -> AstBlock {
     let pairs = SamParser::parse(SamRule::Calculation, text).unwrap();
     let mut block = AstBlock {
-        stack: vec![],
+        operations: vec![],
     };
     let mut add_next:Option<Operation> = None;
     for pair in pairs {
@@ -22,20 +23,20 @@ fn match_expression(pair: Pair<SamRule>, block: &mut AstBlock, add_next: &mut Op
     let original_add_next = *add_next;
     match pair.as_rule() {
         SamRule::Expression => {
-            block.stack.push(Operation::Start);
+            block.operations.push(Operation::StartBlock);
             let inner = pair.into_inner();
             let mut add_next_internal: Option<Operation> = None;
-            for p in inner {
-                match_expression(p, block, &mut add_next_internal);
+            for pair in inner {
+                match_expression(pair, block, &mut add_next_internal);
             }
-            block.stack.push(Operation::End);
-        }
-        SamRule::Add => {
-            *add_next = Some(Operation::Add);
+            block.operations.push(Operation::EndBlock);
         }
         SamRule::Number => {
             let number = pair.as_str().parse::<f64>().unwrap();
-            block.stack.push(Operation::Const(number));
+            block.operations.push(Operation::Const(number));
+        }
+        SamRule::Add => {
+            *add_next = Some(Operation::Add);
         }
         SamRule::Subtract => {
             *add_next = Some(Operation::Sub);
@@ -49,6 +50,13 @@ fn match_expression(pair: Pair<SamRule>, block: &mut AstBlock, add_next: &mut Op
         SamRule::Power => {
             *add_next = Some(Operation::Pow);
         }
+        SamRule::Modulus => {
+            *add_next = Some(Operation::Mod);
+        }
+        SamRule::Variable => {
+            let key = hash_str(pair.as_str());
+            block.operations.push(Operation::LoadVar(key));
+        }
         SamRule::EOI => {}
         _ => {
             panic!("invalid rule! {:?}", pair.as_rule());
@@ -58,7 +66,7 @@ fn match_expression(pair: Pair<SamRule>, block: &mut AstBlock, add_next: &mut Op
     if let Some(op) = add_next {
         if let Some(original) = original_add_next {
             if *op == original {
-                block.stack.push(*op);
+                block.operations.push(op.clone());
                 *add_next = None; 
             }
         }

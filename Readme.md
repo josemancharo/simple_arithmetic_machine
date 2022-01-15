@@ -19,19 +19,20 @@ prints
 
 ## Todo
 
-- [x] Support simple operators +, -, *, /, ()
+- [x] Support simple operators +, -, *, /, (), %
 - [ ] Support Order of Operations (PEMDAS)
 - [x] Support powers
+- [ ] Support different number types (float, int)
 - [ ] Support radicals
 - [ ] Support binary, hex, and octal digits
 - [ ] Support bitwise operations
-- [ ] Universal constants like pi, phi, e, G
+- [x] Universal constants like pi, e, G, tau
 - [ ] Basic variable storage
 - [ ] Basic function creation
 - [ ] Support basic vector operations
 - [ ] Add basic functions like sin, cos, tan, log, etc.
 - [ ] Support simple matrix manipulation
 - [ ] Support simple symbolic computation
-- [ ] Support complex symbolic computation with simplification
+- [ ] Support complex symbolic computation with algebraic simplification
 - [ ] Support Summations and N-Ary Operations
 - [ ] Support integral and derivative approximations

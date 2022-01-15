@@ -3,6 +3,8 @@ use parser::evaluator::eval;
 mod parser;
 mod ast;
 mod interpreter;
+mod cli;
+mod util;
 
 extern crate pest;
 #[macro_use]
@@ -13,7 +15,10 @@ use dialoguer::Input;
 use crate::interpreter::virtual_machine::SamVM;
 
 fn main() {
+   run_interpreter(); 
+}
 
+fn run_interpreter() {
     loop {
         let mut vm = SamVM::new();
         let equation: String = Input::new()
@@ -26,10 +31,7 @@ fn main() {
         }
 
         let output = eval(equation.as_str());
-        println!("{:?}", output.stack);
-        println!("{:?}", vm.interpret(output.stack));
+        println!("{:?}", output.operations);
+        println!("{:?}", vm.interpret(output.operations));
     }
-
-
-    
 }
