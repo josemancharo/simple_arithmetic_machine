@@ -10,4 +10,6 @@ pub enum Operation {
     StartBlock,
     EndBlock,
     LoadVar(u64),
+    StoreVar(u64),
+    CallFunc(u64),
 }

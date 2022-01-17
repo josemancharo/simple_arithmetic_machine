@@ -1,19 +1,31 @@
 Number = @{ Integer ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ Integer)? }
     Integer = _{ ("+" | "-")? ~ ASCII_DIGIT+ }
 
-Operation = _{ Add | Subtract | Multiply | Divide | Power | Modulus }
+Operation = _{ Add | Subtract | Multiply | Divide | Power | Modulus | Pipe }
     Add      = { "+" }
     Subtract = { "-" }
     Multiply = { "*" }
     Divide   = { "/" }
     Power    = { "^" }
     Modulus  = { "%" }
+    Pipe     = { "|>" }
+
+FunctionInvocation = { FunctionName ~ "(" ~ Arguments ~ ")" }
+Arguments = _{ Expression ~ ( "," ~ Expression )* }
+
+FunctionName = { Identifier }
 
 Expression = { Term ~ (Operation ~ Term)* }
-Term = _{ Number | Variable | "(" ~ Expression ~ ")"}
+Term = _{ Number | FunctionInvocation | Variable | "(" ~ Expression ~ ")"}
 
-Variable = { ASCII_ALPHA+ ~ ASCII_ALPHANUMERIC* }
+Variable = { Identifier }
 
-Calculation = _{ SOI ~ Expression ~ EOI }
+Identifier = _{ ASCII_ALPHA+ ~ (ASCII_DIGIT | ASCII_ALPHA)* }
+Calculation = _{ SOI ~ Statement ~ EOI }
 
 WHITESPACE = _{ " " | "\t" }
+
+Statement = _{ FunctionDeclaration | Assignment | Expression }
+Assignment = { Variable ~ "=" ~ Expression }
+FunctionDeclaration = { FunctionName ~ "(" ~ Parameters ~ ")" ~ "=" ~ Expression }
+Parameters = _{ Variable ~ ( "," ~ Variable )* }

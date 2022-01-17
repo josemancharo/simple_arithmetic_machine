@@ -2,11 +2,13 @@ use std::collections::HashMap;
 
 use crate::util::hash_str::hash_str;
 
-pub fn generate_constants() -> HashMap<u64, f64> {
+use super::data_types::Real;
+
+pub fn generate_constants() -> HashMap<u64, Real> {
     let mut map = HashMap::new();
-    map.insert(hash_str("pi"), std::f64::consts::PI);
-    map.insert(hash_str("e"), std::f64::consts::E);
-    map.insert(hash_str("tau"), std::f64::consts::TAU);
-    map.insert(hash_str("G"), 6.67428_f64.powi(-11));
+    map.insert(hash_str("pi"), Real::Float(std::f64::consts::PI));
+    map.insert(hash_str("e"), Real::Float(std::f64::consts::E));
+    map.insert(hash_str("tau"), Real::Float(std::f64::consts::TAU));
+    map.insert(hash_str("G"), Real::Float(6.67428_f64.powi(-11)));
     return map;
 }
