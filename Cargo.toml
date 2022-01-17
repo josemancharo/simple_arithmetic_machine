@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 pest = "2.1.3"
 pest_derive = "2.1.0"
-dialoguer = "0.9.0"
-console = "0.13.0"
+rustyline = "9.1.2"
+nu-ansi-term = "0.42.0"

@@ -105,3 +105,12 @@ impl Rem for Real {
         }
     }
 }
+
+impl ToString for Real {
+    fn to_string(&self) -> String {
+        match &self {
+            &Real::Float(x ) => { x.to_string() }
+            &Real::Int(x) => { x.to_string() }
+        }
+    }
+}

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap};
 
 use crate::{util::hash_str::hash_str, algorithms::{trigonometry::*, logarithms::*}};
 

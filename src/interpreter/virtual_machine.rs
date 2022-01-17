@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{ast::operations::Operation, algorithms::logarithms::pow};
+use crate::{ast::operations::Operation, algorithms::logarithms::pow, errors::SamError};
 
 use super::{constants::generate_constants, user_functions::UserFunctionDefinition, builtin_functions::{Func, setup_builtins}, data_types::Real};
 
@@ -27,14 +27,14 @@ impl SamVM {
         }
     }
 
-    pub fn interpret(&mut self, commands: Vec<Operation>) -> Real {
+    pub fn interpret(&mut self, commands: Vec<Operation>) -> Result<Real, SamError> {
         for command in commands {
-            self.match_command(command);
+            self.match_command(command)?;
         }
-        return self.pop_stack();
+        return Ok(self.pop_stack());
     }
 
-    fn match_command(&mut self, command: Operation){
+    fn match_command(&mut self, command: Operation) -> Result<(), SamError>{
         match command {
             Operation::Const(x) => {
                 if let Ok(x) = x.to_string().parse::<i64>() {
@@ -84,7 +84,6 @@ impl SamVM {
                 let value = self.pop_stack();
                 self.user_vars.insert(x, value);
                 self.push_stack(value);
-                println!("{:?}", self.user_vars)
             }
             Operation::CallFunc(key) => {
                 let func = self.builtin_functions.get(&key).unwrap();
@@ -101,6 +100,7 @@ impl SamVM {
             }
         }
         self.previous_command = Some(command);
+        Ok({})
     }
 
     fn pop_stack(&mut self) -> Real {
@@ -118,7 +118,7 @@ impl SamVM {
         self.push_stack(op(a, b));
     }
 
-    fn push_stack(&mut self, val: Real){
+    fn push_stack(&mut self, val: Real) {
         self.stacks[self.current_stack].push(val);
     }
 

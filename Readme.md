@@ -34,9 +34,10 @@ prints
 - [ ] Scoped variables
 - [ ] Support basic vector operations
 - [ ] Complex numbers
+- [ ] Support Fractions
+- [ ] Support simple CAS (symbolic computer algebra) computation
 - [ ] Support simple matrix operations
 - [ ] Support complete linear algebra stack
-- [ ] Support simple symbolic computation
 - [ ] Support complex symbolic computation with algebraic simplification
 - [ ] Support symbolic computation with linear algebra
 - [ ] Support Summations and N-Ary Operations

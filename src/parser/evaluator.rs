@@ -68,13 +68,13 @@ fn match_expression(pair: Pair<SamRule>, block: &mut AstBlock, add_next: &mut Op
             block.operations.push(Operation::CallFunc(hash_str(&func_name)))
         }
         SamRule::Pipe => {
-            let func_name = pairs.next().expect("pipeline must be follwed by a function name").as_str().trim();
+            let func_name = pairs.next().unwrap().as_str().trim();
             block.operations.push(Operation::CallFunc(hash_str(&func_name)));
         }
         SamRule::Assignment => {
             let mut inner = pair.into_inner();
             let mut inner_add_next: Option<Operation> = None;
-            let name = inner.next().expect("variable name must be the first part of declaration").as_str().trim();
+            let name = inner.next().unwrap().as_str().trim();
             while let Some(pair) = inner.next() {
                 match_expression(pair, block, &mut inner_add_next, &mut inner)
             }
