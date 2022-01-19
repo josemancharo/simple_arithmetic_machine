@@ -19,6 +19,8 @@ prints
 
 ## Todo
 
+- [x] REPL
+- [ ] from-file evaluation
 - [x] Support simple operators +, -, *, /, (), %
 - [x] Universal constants like pi, e, G, tau
 - [x] Add basic functions like sin, cos, tan, log, etc.
@@ -28,10 +30,10 @@ prints
 - [ ] Support Order of Operations (PEMDAS)
 - [x] Support different number types (float, int)
 - [ ] Support binary, hex, and octal digits
-- [ ] Support bitwise operations
+- [x] Support bitwise operations and comparisons
 - [x] Basic variable storage
-- [ ] Basic function creation
-- [ ] Scoped variables
+- [x] Basic function creation
+- [x] Scoped variables
 - [ ] Support basic vector operations
 - [ ] Complex numbers
 - [ ] Support Fractions
@@ -45,3 +47,4 @@ prints
 - [ ] Create stats packages
 - [ ] Terminal graphing library
 - [ ] Compile basic scripts and functions to WASM.
+- [ ] Decent module system

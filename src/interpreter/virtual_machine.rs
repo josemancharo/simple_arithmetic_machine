@@ -1,17 +1,25 @@
 use std::collections::HashMap;
 
-use crate::{ast::operations::Operation, algorithms::logarithms::pow, errors::SamError};
+use crate::{
+    algorithms::logarithms::pow,
+    ast::{operations::Operation, user_functions::UserFunctionDefinition},
+    errors::SamError,
+};
 
-use super::{constants::generate_constants, user_functions::UserFunctionDefinition, builtin_functions::{Func, setup_builtins}, data_types::Real};
+use super::{
+    builtin_functions::{setup_builtins, Func},
+    constants::generate_constants,
+    data_types::Real,
+};
 
 pub struct SamVM {
     stacks: Vec<Vec<Real>>,
     current_stack: usize,
-    previous_command: Option<Operation>,
+    current_scope: usize,
     constants: HashMap<u64, Real>,
-    user_vars: HashMap<u64, Real>,
+    user_vars: Vec<HashMap<u64, Real>>,
     builtin_functions: HashMap<u64, Func>,
-    user_functions: Vec<UserFunctionDefinition>,
+    user_functions: HashMap<u64, UserFunctionDefinition>,
 }
 
 impl SamVM {
@@ -19,12 +27,12 @@ impl SamVM {
         return SamVM {
             stacks: vec![vec![]],
             current_stack: 0,
-            previous_command: None,
+            current_scope: 0,
             constants: generate_constants(),
-            user_functions: vec![],
-            user_vars: HashMap::new(),
-            builtin_functions: setup_builtins()
-        }
+            user_functions: HashMap::new(),
+            user_vars: vec![HashMap::new()],
+            builtin_functions: setup_builtins(),
+        };
     }
 
     pub fn interpret(&mut self, commands: Vec<Operation>) -> Result<Real, SamError> {
@@ -34,38 +42,39 @@ impl SamVM {
         return Ok(self.pop_stack());
     }
 
-    fn match_command(&mut self, command: Operation) -> Result<(), SamError>{
+    fn match_command(&mut self, command: Operation) -> Result<(), SamError> {
         match command {
             Operation::Const(x) => {
                 if let Ok(x) = x.to_string().parse::<i64>() {
                     self.push_stack(Real::Int(x));
-                }
-                else {
+                } else {
                     self.push_stack(Real::Float(x))
                 }
             }
-            Operation::Add => {
-                self.diadic_op(|a, b| { a + b })
-            }
-            Operation::Sub => {
-                self.diadic_op(|a, b| { a - b })
-            }
-            Operation::Mul => {
-                self.diadic_op(|a, b| { a * b })
-            }
-            Operation::Div => {
-                self.diadic_op(|a, b| { a / b })
-            }
-            Operation::Pow => {
-                self.diadic_op(|a, b| { pow(a, b) })
-            }
-            Operation::Mod => {
-                self.diadic_op(|a, b| { a % b })
-            }
+            Operation::Add => self.diadic_op(|a, b| a + b),
+            Operation::Sub => self.diadic_op(|a, b| a - b),
+            Operation::Mul => self.diadic_op(|a, b| a * b),
+            Operation::Div => self.diadic_op(|a, b| a / b),
+            Operation::Pow => self.diadic_op(|a, b| pow(a, b)),
+            Operation::Mod => self.diadic_op(|a, b| a % b),
+            Operation::Gt => self.diadic_op(|a, b| Real::Int((a > b) as i64)),
+            Operation::Lt => self.diadic_op(|a, b| Real::Int((a < b) as i64)),
+            Operation::Lte => self.diadic_op(|a, b| Real::Int((a <= b) as i64)),
+            Operation::Gte => self.diadic_op(|a, b| Real::Int((a >= b) as i64)),
+            Operation::Eq => self.diadic_op(|a, b| Real::Int((a == b) as i64)),
+            Operation::Neq => self.diadic_op(|a, b| Real::Int((a != b) as i64)),
+            Operation::BitAnd => self.diadic_op(|a, b| a & b),
+            Operation::BitOr => self.diadic_op(|a, b| a | b),
+            Operation::BitXor => self.diadic_op(|a, b| a ^ b),
+            Operation::RightShift => self.diadic_op(|a, b| a >> b),
+            Operation::LeftShift => self.diadic_op(|a, b| a << b),
+            Operation::Neg => self.monadic_op(|x| -x),
+            Operation::Not => self.monadic_op(|x| !x),
+
             Operation::LoadVar(key) => {
                 let val = self.get_var(key);
                 self.push_stack(val);
-            } 
+            }
             Operation::StartBlock => {
                 if self.current_stack != 0 {
                     self.stacks.push(vec![]);
@@ -80,27 +89,54 @@ impl SamVM {
                     self.push_stack(result);
                 }
             }
-            Operation::StoreVar(x) => {
+            Operation::StoreVar(key) => {
                 let value = self.pop_stack();
-                self.user_vars.insert(x, value);
+                self.set_var(key, value);
                 self.push_stack(value);
             }
             Operation::CallFunc(key) => {
-                let func = self.builtin_functions.get(&key).unwrap();
-                match func {
-                    &Func::Monad(f) => {
-                        let x = self.pop_stack();
-                        self.push_stack(f(x));
+                if let Some(func) = self.builtin_functions.get(&key) {
+                    match func {
+                        &Func::Monad(f) => {
+                            let x = self.pop_stack();
+                            self.push_stack(f(x));
+                        }
+                        &Func::Diad(f) => {
+                            let (b, a) = self.pop_two();
+                            self.push_stack(f(a, b))
+                        }
                     }
-                    &Func::Diad(f) => {
-                        let (b, a) = self.pop_two();
-                        self.push_stack(f(a, b))
+                } else {
+                    if let Some(func) = self.user_functions.get(&key) {
+                        let func = func.clone();
+                        self.user_vars.push(HashMap::new());
+                        self.current_scope += 1;
+                        let params = &func.parameters.clone();
+                        for param in params {
+                            let val = self.pop_stack();
+                            self.set_var(param.clone(), val);
+                        }
+
+                        let mut ops = func.operations.clone().into_iter();
+                        while let Some(op) = ops.next(){
+                            let op = op.clone();
+                            self.match_command(op)?;
+                        }
+                        self.current_scope -= 1;
+                        self.user_vars.pop();
                     }
                 }
             }
+            Operation::StoreFunc(key, func) => {
+                self.user_functions.insert(key, func);
+                self.push_stack(Real::Int(0));
+            }
         }
-        self.previous_command = Some(command);
         Ok({})
+    }
+
+    fn set_var(&mut self, key: u64, value: Real) {
+        self.user_vars[self.current_scope].insert(key, value);
     }
 
     fn pop_stack(&mut self) -> Real {
@@ -113,9 +149,14 @@ impl SamVM {
         return (b, a);
     }
 
-    fn diadic_op(&mut self, op: fn(Real, Real) -> Real){
+    fn diadic_op(&mut self, op: fn(Real, Real) -> Real) {
         let (b, a) = self.pop_two();
         self.push_stack(op(a, b));
+    }
+
+    fn monadic_op(&mut self, op: fn(Real) -> Real) {
+        let a = self.pop_stack();
+        self.push_stack(op(a));
     }
 
     fn push_stack(&mut self, val: Real) {
@@ -123,20 +164,22 @@ impl SamVM {
     }
 
     fn get_var(&mut self, key: u64) -> Real {
-         let global = self.constants.get(&key);
-         if let Some(val) = global {
-             return val.clone();
-         }
-         else {
-             let local = self.user_vars.get(&key);
-             if let Some(val) = local {
-                 return val.clone();
-             }
-             else {
-                 return Real::Int(0);
-             }
-         }
+        let global = self.constants.get(&key);
+        if let Some(val) = global {
+            return val.clone();
+        } else {
+            let mut scope = self.current_scope;
+            loop {
+                let local = self.user_vars[scope].get(&key);
+                if let Some(val) = local {
+                    return val.clone();
+                }
+                scope -= 1;
+                if scope == 0 {
+                    break;
+                }
+            }
+            return Real::Int(0);
+        }
     }
-
 }
-
