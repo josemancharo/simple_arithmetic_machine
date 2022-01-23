@@ -69,7 +69,7 @@ impl SamVM {
             Operation::RightShift => self.diadic_op(|a, b| a >> b),
             Operation::LeftShift => self.diadic_op(|a, b| a << b),
             Operation::Neg => self.monadic_op(|x| -x)?,
-            Operation::Not => self.monadic_op(|x| !x)?,
+            Operation::BitCompliment => self.monadic_op(|x| !x)?,
 
             Operation::LoadVar(key) => {
                 let val = self.get_var(key);
