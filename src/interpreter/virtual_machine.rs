@@ -39,34 +39,40 @@ impl SamVM {
         for command in commands {
             self.match_command(command)?;
         }
-        return self.pop_stack();
+        let last_value = self.stacks[self.current_stack]
+            .last()
+            .ok_or(ErrorWithMessage::new_box("stack empty!"))?;
+        return Ok(last_value.clone());
     }
 
     fn match_command(&mut self, command: Operation) -> Result<(), SamError> {
         match command {
             Operation::Float(x) => self.push_stack(Real::Float(x)),
             Operation::Int(x) => self.push_stack(Real::Int(x)),
-            Operation::Add => self.diadic_op(|a, b| a + b),
-            Operation::Sub => self.diadic_op(|a, b| a - b),
-            Operation::Mul => self.diadic_op(|a, b| a * b),
-            Operation::Div => self.diadic_op(|a, b| a / b),
-            Operation::Pow => self.diadic_op(|a, b| pow(a, b)),
-            Operation::Mod => self.diadic_op(|a, b| a % b),
-            Operation::Gt => self.diadic_op(|a, b| Real::Int((a > b) as i64)),
-            Operation::Lt => self.diadic_op(|a, b| Real::Int((a < b) as i64)),
-            Operation::Lte => self.diadic_op(|a, b| Real::Int((a <= b) as i64)),
-            Operation::Gte => self.diadic_op(|a, b| Real::Int((a >= b) as i64)),
-            Operation::Eq => self.diadic_op(|a, b| Real::Int((a == b) as i64)),
-            Operation::Neq => self.diadic_op(|a, b| Real::Int((a != b) as i64)),
-            Operation::BitAnd => self.diadic_op(|a, b| a & b),
-            Operation::BitOr => self.diadic_op(|a, b| a | b),
-            Operation::BitXor => self.diadic_op(|a, b| a ^ b),
-            Operation::RightShift => self.diadic_op(|a, b| a >> b),
-            Operation::LeftShift => self.diadic_op(|a, b| a << b),
+            Operation::Add => self.diadic_op(|a, b| a + b)?,
+            Operation::Sub => self.diadic_op(|a, b| a - b)?,
+            Operation::Mul => self.diadic_op(|a, b| a * b)?,
+            Operation::Div => self.diadic_op(|a, b| a / b)?,
+            Operation::Pow => self.diadic_op(|a, b| pow(a, b))?,
+            Operation::Mod => self.diadic_op(|a, b| a % b)?,
+            Operation::Gt => self.diadic_op(|a, b| Real::Int((a > b) as i64))?,
+            Operation::Lt => self.diadic_op(|a, b| Real::Int((a < b) as i64))?,
+            Operation::Lte => self.diadic_op(|a, b| Real::Int((a <= b) as i64))?,
+            Operation::Gte => self.diadic_op(|a, b| Real::Int((a >= b) as i64))?,
+            Operation::Eq => self.diadic_op(|a, b| Real::Int((a == b) as i64))?,
+            Operation::Neq => self.diadic_op(|a, b| Real::Int((a != b) as i64))?,
+            Operation::BitAnd => self.diadic_op(|a, b| a & b)?,
+            Operation::BitOr => self.diadic_op(|a, b| a | b)?,
+            Operation::BitXor => self.diadic_op(|a, b| a ^ b)?,
+            Operation::RightShift => self.diadic_op(|a, b| a >> b)?,
+            Operation::LeftShift => self.diadic_op(|a, b| a << b)?,
             Operation::Neg => self.monadic_op(|x| -x)?,
             Operation::BitCompliment => self.monadic_op(|x| !x)?,
             Operation::Not => self.monadic_op(|x| x ^ Real::Int(1))?,
-
+            Operation::PeekStack => {
+                let value = self.pop_stack()?;
+                self.push_stack(value);
+            }
             Operation::LoadVar(key) => {
                 let val = self.get_var(key);
                 self.push_stack(val);
@@ -84,7 +90,7 @@ impl SamVM {
                             self.push_stack(f(x));
                         }
                         &Func::Diad(f) => {
-                            let (b, a) = self.pop_two();
+                            let (b, a) = self.pop_two()?;
                             self.push_stack(f(a, b))
                         }
                     }
@@ -128,15 +134,18 @@ impl SamVM {
             .ok_or(ErrorWithMessage::new_box("stack empty!"));
     }
 
-    fn pop_two(&mut self) -> (Real, Real) {
-        let b = self.stacks[self.current_stack].pop().unwrap();
-        let a = self.stacks[self.current_stack].pop().unwrap();
-        return (b, a);
+    fn pop_two(&mut self) -> Result<(Real, Real), SamError> {
+        let b = self.stacks[self.current_stack].pop()
+            .ok_or(ErrorWithMessage::new_box("stack empty!"))?;
+        let a = self.stacks[self.current_stack].pop()
+            .ok_or(ErrorWithMessage::new_box("stack empty!"))?;
+        return Ok((b, a));
     }
 
-    fn diadic_op(&mut self, op: fn(Real, Real) -> Real) {
-        let (b, a) = self.pop_two();
+    fn diadic_op(&mut self, op: fn(Real, Real) -> Real) -> Result<(), SamError> {
+        let (b, a) = self.pop_two()?;
         self.push_stack(op(a, b));
+        Ok({})
     }
 
     fn monadic_op(&mut self, op: fn(Real) -> Real) -> Result<(), SamError> {

@@ -28,6 +28,7 @@ pub enum Operation {
     Gte,
     Neq,
     Eq,
+    PeekStack,
     LoadVar(u64),
     StoreVar(u64),
     CallFunc(u64),

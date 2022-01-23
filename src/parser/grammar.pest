@@ -37,9 +37,12 @@ Arguments = _{ Expression ~ ( "," ~ Expression )* }
 FunctionName = { Identifier }
 
 Expression = { Term ~ (Operation ~ Term)* }
-Term = _{ UnaryOperation? ~ (Number | FunctionInvocation | Variable | "(" ~ Expression ~ ")") }
+Term = _{ UnaryOperation? ~ (ValidTermItem | "(" ~ Expression ~ ")") }
+
+ValidTermItem = _{ Number | FunctionInvocation | Variable | PeekStack }
 
 Variable = { Identifier }
+PeekStack = { "$" }
 
 Identifier = _{ ASCII_ALPHA+ ~ (ASCII_DIGIT | ASCII_ALPHA)* }
 Calculation = _{ SOI ~ Statement ~ EOI }

@@ -33,7 +33,7 @@ pub fn run_repl() -> Result<(), SamError> {
                     })
                 });
                 if let Err(e) = output {
-                    eprintln!("Error: {:?}", Red.paint(e.to_string()));
+                    eprintln!("Error: {}", Red.paint(e.to_string()));
                 }
 
                 history.push(line);
