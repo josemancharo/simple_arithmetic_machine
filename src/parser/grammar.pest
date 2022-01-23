@@ -1,8 +1,10 @@
 Float = @{ ASCII_DIGIT+  ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ ASCII_DIGIT+)? }
-Integer = @{ ASCII_DIGIT+ ~ (^"e" ~ ASCII_DIGIT+)? }
-Hexadecimal = @{ "0x" ~ (ASCII_DIGIT | "A" | "B" | "C" | "D" | "E" | "F")+ }
-Octal = @{ "0o" ~ ("0" | "1" | "2" | "3" | "4" | "5" | "6" | "7")+ }
-Binary = @{ "0b" ~ ("0" | "1")+ }
+Integer = @{ ASCII_DIGIT+ ~ (^"e" ~ (ASCII_DIGIT | "_")+)? }
+Hexadecimal = @{ "0x" ~  HexDigit+ ~ (HexDigit | "_")* }
+HexDigit = _{ASCII_DIGIT | 'A'..'F' | 'a'..'f'}
+Octal = @{ "0o" ~ OctalDigit+ ~ (OctalDigit | "_")* }
+OctalDigit = _{"0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"}
+Binary = @{ "0b" ~ ("0" | "1")+ ~ ("0" | "1" | "_")* }
 
 Number = _{ Binary | Hexadecimal | Octal | Float | Integer }
 
@@ -44,7 +46,7 @@ ValidTermItem = _{ Number | FunctionInvocation | Variable | PeekStack }
 Variable = { Identifier }
 PeekStack = { "$" }
 
-Identifier = _{ ASCII_ALPHA+ ~ (ASCII_DIGIT | ASCII_ALPHA)* }
+Identifier = _{ ("_" | ASCII_ALPHA)+ ~ (ASCII_DIGIT | ASCII_ALPHA | "_")* }
 Calculation = _{ SOI ~ Statement ~ EOI }
 
 WHITESPACE = _{ " " | "\t" }

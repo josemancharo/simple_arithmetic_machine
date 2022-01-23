@@ -1,5 +1,4 @@
 mod grammar;
-mod order_of_operations;
 mod match_diad_op;
 mod evaluator;
 
