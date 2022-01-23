@@ -135,9 +135,11 @@ impl SamVM {
     }
 
     fn pop_two(&mut self) -> Result<(Real, Real), SamError> {
-        let b = self.stacks[self.current_stack].pop()
+        let b = self.stacks[self.current_stack]
+            .pop()
             .ok_or(ErrorWithMessage::new_box("stack empty!"))?;
-        let a = self.stacks[self.current_stack].pop()
+        let a = self.stacks[self.current_stack]
+            .pop()
             .ok_or(ErrorWithMessage::new_box("stack empty!"))?;
         return Ok((b, a));
     }
@@ -164,12 +166,17 @@ impl SamVM {
             return val.clone();
         } else {
             let mut scope = self.current_scope;
-            while scope != 0 {
+            loop {
                 let local = self.user_vars[scope].get(&key);
                 if let Some(val) = local {
                     return val.clone();
                 }
-                scope -= 1;
+                if scope != 0 {
+                    scope -= 1;
+                }
+                if scope == 0 {
+                    break;
+                }
             }
             return Real::Int(0);
         }
