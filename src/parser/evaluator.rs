@@ -99,7 +99,23 @@ impl SamEvaluator {
             }
             SamRule::Float => {
                 let x = pair.as_str().parse::<f64>()?;
-                self.push_output(Operation::Const(x));
+                self.push_output(Operation::Float(x));
+            }
+            SamRule::Integer => {
+                let x = pair.as_str().parse::<i64>()?;
+                self.push_output(Operation::Int(x));
+            }
+            SamRule::Hexadecimal => {
+                let x = i64::from_str_radix(pair.as_str().trim_start_matches("0x"), 16)?;
+                self.push_output(Operation::Int(x));
+            }
+            SamRule::Octal => {
+                let x = i64::from_str_radix(pair.as_str().trim_start_matches("0o"), 8)?;
+                self.push_output(Operation::Int(x));
+            }
+            SamRule::Binary => {
+                let x = i64::from_str_radix(pair.as_str().trim_start_matches("0b"), 2)?;
+                self.push_output(Operation::Int(x));
             }
             SamRule::Variable => {
                 let key = hash_str(pair.as_str().trim());

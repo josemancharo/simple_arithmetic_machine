@@ -5,7 +5,8 @@ use super::user_functions::UserFunctionDefinition;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operation {
-    Const(f64),
+    Float(f64),
+    Int(i64),
     Add,
     Sub,
     Mul,
@@ -58,7 +59,7 @@ impl Operation {
             Self::StoreVar(_) => 255,
             Self::StoreFunc(_, _) => 255,
             Self::LoadVar(_) => 255,
-            Self::Const(_) => 255,
+            Self::Float(_) => 255,
             _ => 0
         }
     }

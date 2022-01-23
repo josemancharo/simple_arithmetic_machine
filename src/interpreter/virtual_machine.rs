@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     algorithms::logarithms::pow,
     ast::{operations::Operation, user_functions::UserFunctionDefinition},
-    errors::{SamError, ErrorWithMessage},
+    errors::{ErrorWithMessage, SamError},
 };
 
 use super::{
@@ -44,13 +44,8 @@ impl SamVM {
 
     fn match_command(&mut self, command: Operation) -> Result<(), SamError> {
         match command {
-            Operation::Const(x) => {
-                if let Ok(x) = x.to_string().parse::<i64>() {
-                    self.push_stack(Real::Int(x));
-                } else {
-                    self.push_stack(Real::Float(x))
-                }
-            }
+            Operation::Float(x) => self.push_stack(Real::Float(x)),
+            Operation::Int(x) => self.push_stack(Real::Int(x)),
             Operation::Add => self.diadic_op(|a, b| a + b),
             Operation::Sub => self.diadic_op(|a, b| a - b),
             Operation::Mul => self.diadic_op(|a, b| a * b),
@@ -71,7 +66,7 @@ impl SamVM {
             Operation::Neg => self.monadic_op(|x| -x)?,
             Operation::BitCompliment => self.monadic_op(|x| !x)?,
             Operation::Not => self.monadic_op(|x| x ^ Real::Int(1))?,
-            
+
             Operation::LoadVar(key) => {
                 let val = self.get_var(key);
                 self.push_stack(val);
@@ -105,7 +100,7 @@ impl SamVM {
                         }
 
                         let mut ops = func.operations.clone().into_iter();
-                        while let Some(op) = ops.next(){
+                        while let Some(op) = ops.next() {
                             let op = op.clone();
                             self.match_command(op)?;
                         }
@@ -118,7 +113,7 @@ impl SamVM {
                 self.user_functions.insert(key, func);
                 self.push_stack(Real::Int(0));
             }
-            _ => { return Err(ErrorWithMessage::new_box("stack empty!")) }
+            _ => return Err(ErrorWithMessage::new_box("stack empty!")),
         }
         Ok({})
     }
@@ -128,9 +123,10 @@ impl SamVM {
     }
 
     fn pop_stack(&mut self) -> Result<Real, SamError> {
-        return self.stacks[self.current_stack].pop()
+        return self.stacks[self.current_stack]
+            .pop()
             .ok_or(ErrorWithMessage::new_box("stack empty!"));
-    } 
+    }
 
     fn pop_two(&mut self) -> (Real, Real) {
         let b = self.stacks[self.current_stack].pop().unwrap();

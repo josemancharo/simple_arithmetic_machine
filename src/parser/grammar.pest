@@ -1,6 +1,10 @@
 Float = @{ ASCII_DIGIT+  ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ ASCII_DIGIT+)? }
-Integer = _{ ASCII_DIGIT+ }
+Integer = @{ ASCII_DIGIT+ ~ (^"e" ~ ASCII_DIGIT+)? }
+Hexadecimal = @{ "0x" ~ (ASCII_DIGIT | "A" | "B" | "C" | "D" | "E" | "F")+ }
+Octal = @{ "0o" ~ ("0" | "1" | "2" | "3" | "4" | "5" | "6" | "7")+ }
+Binary = @{ "0b" ~ ("0" | "1")+ }
 
+Number = _{ Binary | Hexadecimal | Octal | Float | Integer }
 
 Operation = _{ Add | Subtract | Power | Or | And | RightShift | LeftShift | Xor | Multiply | Divide | Modulus | Neq | Gte | Eq | Lte | Gt | Lt | Pipe }
     Add      = { "+" }
@@ -33,7 +37,7 @@ Arguments = _{ Expression ~ ( "," ~ Expression )* }
 FunctionName = { Identifier }
 
 Expression = { Term ~ (Operation ~ Term)* }
-Term = _{ UnaryOperation? ~ (Float | FunctionInvocation | Variable | "(" ~ Expression ~ ")") }
+Term = _{ UnaryOperation? ~ (Number | FunctionInvocation | Variable | "(" ~ Expression ~ ")") }
 
 Variable = { Identifier }
 
