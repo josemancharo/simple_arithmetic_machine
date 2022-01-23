@@ -50,7 +50,7 @@ impl SamEvaluator {
         }
     }
 
-    fn end_of_input(&mut self){
+    fn end_of_input(&mut self) {
         while let Some(op) = self.pop_op() {
             self.push_output(op)
         }
@@ -117,6 +117,7 @@ impl SamEvaluator {
                 let x = i64::from_str_radix(pair.as_str().trim_start_matches("0b"), 2)?;
                 self.push_output(Operation::Int(x));
             }
+            SamRule::PeekStack => self.push_output(Operation::PeekStack),
             SamRule::Variable => {
                 let key = hash_str(pair.as_str().trim());
                 self.push_output(Operation::LoadVar(key));
