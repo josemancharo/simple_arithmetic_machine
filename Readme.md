@@ -17,9 +17,16 @@ and
 prints 
 > `24`
 
+```
+2 + 2 * 7 - 8 / 2
+```
+prints
+> `12`
+
 ## Todo
 
 - [x] REPL
+- [ ] Implement tui interface with tabs
 - [ ] from-file evaluation
 - [x] Support simple operators +, -, *, /, (), %
 - [x] Universal constants like pi, e, G, tau

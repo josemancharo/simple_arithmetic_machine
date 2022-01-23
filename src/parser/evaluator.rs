@@ -126,7 +126,7 @@ impl SamEvaluator {
                 self.declare_function(pair)?;
             }
             SamRule::Neg => self.push_op(Operation::Neg),
-            SamRule::Not => self.push_op(Operation::Not),
+            SamRule::BitCompliment => self.push_op(Operation::BitCompliment),
             _ => {
                 if let Some(op) = match_diad_op(pair.as_rule()) {
                     self.output_superior_ops(&op);
