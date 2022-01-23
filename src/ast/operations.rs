@@ -20,6 +20,7 @@ pub enum Operation {
     LeftShift,
     Neg,
     Not,
+    BitCompliment,
     Lt,
     Gt,
     Lte,

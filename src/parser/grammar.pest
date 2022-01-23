@@ -22,8 +22,9 @@ Operation = _{ Add | Subtract | Power | Or | And | RightShift | LeftShift | Xor 
     RightShift = { ">>" }
     LeftShift = { "<<" }
 
-UnaryOperation = _{ Neg | Not }
+UnaryOperation = _{ Neg | BitCompliment | Not }
     Neg = { "-" }
+    BitCompliment = { "~" }
     Not = { "!" }
 
 FunctionInvocation = { FunctionName ~ "(" ~ Arguments ~ ")" }

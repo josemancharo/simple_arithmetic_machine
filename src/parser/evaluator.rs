@@ -125,6 +125,7 @@ impl SamEvaluator {
             SamRule::FunctionDeclaration => {
                 self.declare_function(pair)?;
             }
+            SamRule::Not => self.push_op(Operation::Not),
             SamRule::Neg => self.push_op(Operation::Neg),
             SamRule::Not => self.push_op(Operation::Not),
             _ => {
