@@ -1,4 +1,5 @@
 
+use errors::SamError;
 use repl::run_repl;
 
 mod parser;
@@ -15,7 +16,8 @@ extern crate pest;
 extern crate pest_derive;
 
 
-fn main() {
-   run_repl().unwrap(); 
+fn main() -> Result<(), SamError> {
+   run_repl()?; 
+   Ok({})
 }
 

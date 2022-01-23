@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     algorithms::logarithms::pow,
     ast::{operations::Operation, user_functions::UserFunctionDefinition},
-    errors::SamError,
+    errors::{SamError, ErrorWithMessage},
 };
 
 use super::{
@@ -39,7 +39,7 @@ impl SamVM {
         for command in commands {
             self.match_command(command)?;
         }
-        return Ok(self.pop_stack());
+        return self.pop_stack();
     }
 
     fn match_command(&mut self, command: Operation) -> Result<(), SamError> {
@@ -68,29 +68,15 @@ impl SamVM {
             Operation::BitXor => self.diadic_op(|a, b| a ^ b),
             Operation::RightShift => self.diadic_op(|a, b| a >> b),
             Operation::LeftShift => self.diadic_op(|a, b| a << b),
-            Operation::Neg => self.monadic_op(|x| -x),
-            Operation::Not => self.monadic_op(|x| !x),
+            Operation::Neg => self.monadic_op(|x| -x)?,
+            Operation::Not => self.monadic_op(|x| !x)?,
 
             Operation::LoadVar(key) => {
                 let val = self.get_var(key);
                 self.push_stack(val);
             }
-            Operation::StartBlock => {
-                if self.current_stack != 0 {
-                    self.stacks.push(vec![]);
-                    self.current_stack += 1;
-                }
-            }
-            Operation::EndBlock => {
-                if self.current_stack != 0 {
-                    let result = self.pop_stack();
-                    self.stacks.pop();
-                    self.current_stack -= 1;
-                    self.push_stack(result);
-                }
-            }
             Operation::StoreVar(key) => {
-                let value = self.pop_stack();
+                let value = self.pop_stack()?;
                 self.set_var(key, value);
                 self.push_stack(value);
             }
@@ -98,7 +84,7 @@ impl SamVM {
                 if let Some(func) = self.builtin_functions.get(&key) {
                     match func {
                         &Func::Monad(f) => {
-                            let x = self.pop_stack();
+                            let x = self.pop_stack()?;
                             self.push_stack(f(x));
                         }
                         &Func::Diad(f) => {
@@ -113,7 +99,7 @@ impl SamVM {
                         self.current_scope += 1;
                         let params = &func.parameters.clone();
                         for param in params {
-                            let val = self.pop_stack();
+                            let val = self.pop_stack()?;
                             self.set_var(param.clone(), val);
                         }
 
@@ -131,6 +117,7 @@ impl SamVM {
                 self.user_functions.insert(key, func);
                 self.push_stack(Real::Int(0));
             }
+            _ => { return Err(ErrorWithMessage::new_box("stack empty!")) }
         }
         Ok({})
     }
@@ -139,9 +126,10 @@ impl SamVM {
         self.user_vars[self.current_scope].insert(key, value);
     }
 
-    fn pop_stack(&mut self) -> Real {
-        return self.stacks[self.current_stack].pop().unwrap();
-    }
+    fn pop_stack(&mut self) -> Result<Real, SamError> {
+        return self.stacks[self.current_stack].pop()
+            .ok_or(ErrorWithMessage::new_box("stack empty!"));
+    } 
 
     fn pop_two(&mut self) -> (Real, Real) {
         let b = self.stacks[self.current_stack].pop().unwrap();
@@ -154,9 +142,10 @@ impl SamVM {
         self.push_stack(op(a, b));
     }
 
-    fn monadic_op(&mut self, op: fn(Real) -> Real) {
-        let a = self.pop_stack();
+    fn monadic_op(&mut self, op: fn(Real) -> Real) -> Result<(), SamError> {
+        let a = self.pop_stack()?;
         self.push_stack(op(a));
+        Ok({})
     }
 
     fn push_stack(&mut self, val: Real) {
@@ -169,15 +158,12 @@ impl SamVM {
             return val.clone();
         } else {
             let mut scope = self.current_scope;
-            loop {
+            while scope != 0 {
                 let local = self.user_vars[scope].get(&key);
                 if let Some(val) = local {
                     return val.clone();
                 }
                 scope -= 1;
-                if scope == 0 {
-                    break;
-                }
             }
             return Real::Int(0);
         }

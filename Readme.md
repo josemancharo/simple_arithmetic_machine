@@ -26,8 +26,8 @@ prints
 - [x] Add basic functions like sin, cos, tan, log, etc.
 - [ ] Document builtins and constants
 - [x] Support powers
-- [ ] Decent error handling
-- [ ] Support Order of Operations (PEMDAS)
+- [x] Decent error handling
+- [x] Support Order of Operations (PEMDAS)
 - [x] Support different number types (float, int)
 - [ ] Support binary, hex, and octal digits
 - [x] Support bitwise operations and comparisons

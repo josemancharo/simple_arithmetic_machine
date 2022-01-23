@@ -1,8 +1,10 @@
-use crate::{parser::evaluator::eval, errors::SamError};
+use crate::errors::SamError;
 use crate::interpreter::virtual_machine::SamVM;
+use nu_ansi_term::Color::{Green, Red};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use nu_ansi_term::Color::{ Red, Green };
+
+use crate::parser;
 
 pub fn run_repl() -> Result<(), SamError> {
     let mut history: Vec<String> = vec![];
@@ -15,10 +17,9 @@ pub fn run_repl() -> Result<(), SamError> {
     match rl.load_history(&history_path.as_os_str()) {
         _ => {}
     };
-    
+
     loop {
         let readline = rl.readline(">> ");
-
         match readline {
             Ok(line) => {
                 if line.trim() == "" {
@@ -26,21 +27,28 @@ pub fn run_repl() -> Result<(), SamError> {
                 }
                 rl.add_history_entry(line.as_str());
 
-                let output = eval(line.as_str());
-                println!("{}", Green.paint(vm.interpret(output.operations)?.to_string()));
+                let output = parser::parse_input(line.as_str()).and_then(|output| {
+                    vm.interpret(output).and_then(|real| {
+                        Ok(println!("{}", Green.paint(real.to_string())))
+                    })
+                });
+                if let Err(e) = output {
+                    eprintln!("Error: {:?}", Red.paint(e.to_string()));
+                }
+
                 history.push(line);
-            },
+            }
             Err(ReadlineError::Interrupted) => {
                 println!("{}", Red.paint("CTRL-C"));
-                break
-            },
+                break;
+            }
             Err(ReadlineError::Eof) => {
                 println!("{}", Red.paint("CTRL-D"));
-                break
-            },
+                break;
+            }
             Err(err) => {
                 eprintln!("Error: {:?}", err);
-                break
+                break;
             }
         }
     }
