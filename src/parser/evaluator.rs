@@ -30,7 +30,7 @@ impl SamEvaluator {
     }
 
     fn push_output(&mut self, op: Operation) {
-        self.output.push(op)
+        self.output.push(op);
     }
 
     fn pop_op(&mut self) -> Option<Operation> {
@@ -81,6 +81,9 @@ impl SamEvaluator {
                 break;
             }
             let op = self.pop_op().unwrap();
+            if op == Operation::StartBlock {
+                break;
+            }
             self.push_output(op);
         }
     }

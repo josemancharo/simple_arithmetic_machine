@@ -22,6 +22,8 @@ pub fn match_diad_op(op: SamRule) -> Option<Operation> {
         SamRule::Or => Some(Operation::BitOr),
         SamRule::RightShift => Some(Operation::RightShift),
         SamRule::LeftShift => Some(Operation::LeftShift),
+        SamRule::BoolOr => Some(Operation::BoolOr),
+        SamRule::BoolAnd => Some(Operation::BoolAnd),
         _ => None
     }
 }

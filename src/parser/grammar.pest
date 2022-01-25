@@ -8,7 +8,18 @@ Binary = @{ "0b" ~ ("0" | "1")+ ~ ("0" | "1" | "_")* }
 
 Number = _{ Binary | Hexadecimal | Octal | Float | Integer }
 
-Operation = _{ Add | Subtract | Power | Or | And | RightShift | LeftShift | Xor | Multiply | Divide | Modulus | Neq | Gte | Eq | Lte | Gt | Lt | Pipe }
+Operation = _{ 
+    Add 
+    | Subtract 
+    | Power 
+    | BoolOr 
+    | BoolAnd 
+    | Or | And | RightShift | LeftShift | Xor 
+    | Multiply | Divide | Modulus 
+    | Neq | Gte | Eq | Lte | Gt | Lt 
+    | Pipe 
+    }
+    
     Add      = { "+" }
     Subtract = { "-" }
     Multiply = { "*" }
@@ -16,6 +27,8 @@ Operation = _{ Add | Subtract | Power | Or | And | RightShift | LeftShift | Xor 
     Power    = { "**" }
     Modulus  = { "%" }
     Or       = { "|" }
+    BoolOr   = { "||" }
+    BoolAnd  = { "&&" }
     And      = { "&" }
     Xor      = { "^" }
     Gt       = { ">" }

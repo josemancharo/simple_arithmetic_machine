@@ -62,6 +62,20 @@ impl SamVM {
             Operation::Eq => self.diadic_op(|a, b| Real::Int((a == b) as i64))?,
             Operation::Neq => self.diadic_op(|a, b| Real::Int((a != b) as i64))?,
             Operation::BitAnd => self.diadic_op(|a, b| a & b)?,
+            Operation::BoolAnd => self.diadic_op(|a, b| {
+                if a != Real::Int(0) && b != Real::Int(0) {
+                    Real::Int(1)
+                } else {
+                    Real::Int(0)
+                }
+            })?,
+            Operation::BoolOr => self.diadic_op(|a, b| {
+                if a != Real::Int(0) || b != Real::Int(0) {
+                    Real::Int(1)
+                } else {
+                    Real::Int(0)
+                }
+            })?,
             Operation::BitOr => self.diadic_op(|a, b| a | b)?,
             Operation::BitXor => self.diadic_op(|a, b| a ^ b)?,
             Operation::RightShift => self.diadic_op(|a, b| a >> b)?,
@@ -119,8 +133,7 @@ impl SamVM {
                 let (c, b, a) = self.pop_three()?;
                 if a != Real::Float(0.0) && c != Real::Int(0) {
                     self.push_stack(b);
-                }
-                else {
+                } else {
                     self.push_stack(c);
                 }
             }
@@ -150,7 +163,7 @@ impl SamVM {
     }
 
     fn pop_three(&mut self) -> Result<(Real, Real, Real), SamError> {
-        let (c, b) = self.pop_two()?; 
+        let (c, b) = self.pop_two()?;
         let a = self.pop_stack()?;
         return Ok((c, b, a));
     }
