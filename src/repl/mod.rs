@@ -29,7 +29,8 @@ pub fn run_repl() -> Result<(), SamError> {
 
                 let output = parser::parse_input(line.as_str()).and_then(|output| {
                     vm.interpret(output).and_then(|real| {
-                        Ok(println!("{}", Green.paint(real.to_string())))
+                        println!("{}", Green.paint(real.to_string()));
+                        Ok({})
                     })
                 });
                 if let Err(e) = output {

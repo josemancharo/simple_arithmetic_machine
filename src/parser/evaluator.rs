@@ -52,6 +52,9 @@ impl SamEvaluator {
 
     fn end_of_input(&mut self) {
         while let Some(op) = self.pop_op() {
+            if op == Operation::StartBlock {
+                continue;
+            }
             self.push_output(op)
         }
     }
@@ -162,6 +165,11 @@ impl SamEvaluator {
             }
             SamRule::Not => self.push_op(Operation::Not),
             SamRule::Neg => self.push_op(Operation::Neg),
+            SamRule::ConditionalOperator => {
+                self.end_of_input();
+                self.match_inner_pairs(pair)?;
+                self.push_op(Operation::Conditional)
+            },
             SamRule::BitCompliment => self.push_op(Operation::BitCompliment),
             _ => {
                 if let Some(op) = match_diad_op(pair.as_rule()) {
@@ -169,6 +177,7 @@ impl SamEvaluator {
                     self.push_op(op);
                 }
             }
+            
         }
         Ok({})
     }

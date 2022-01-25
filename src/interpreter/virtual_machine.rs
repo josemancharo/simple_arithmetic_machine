@@ -115,6 +115,15 @@ impl SamVM {
                     }
                 }
             }
+            Operation::Conditional => {
+                let (c, b, a) = self.pop_three()?;
+                if a != Real::Float(0.0) && c != Real::Int(0) {
+                    self.push_stack(b);
+                }
+                else {
+                    self.push_stack(c);
+                }
+            }
             Operation::StoreFunc(key, func) => {
                 self.user_functions.insert(key, func);
                 self.push_stack(Real::Int(0));
@@ -135,13 +144,15 @@ impl SamVM {
     }
 
     fn pop_two(&mut self) -> Result<(Real, Real), SamError> {
-        let b = self.stacks[self.current_stack]
-            .pop()
-            .ok_or(ErrorWithMessage::new_box("stack empty!"))?;
-        let a = self.stacks[self.current_stack]
-            .pop()
-            .ok_or(ErrorWithMessage::new_box("stack empty!"))?;
+        let b = self.pop_stack()?;
+        let a = self.pop_stack()?;
         return Ok((b, a));
+    }
+
+    fn pop_three(&mut self) -> Result<(Real, Real, Real), SamError> {
+        let (c, b) = self.pop_two()?; 
+        let a = self.pop_stack()?;
+        return Ok((c, b, a));
     }
 
     fn diadic_op(&mut self, op: fn(Real, Real) -> Real) -> Result<(), SamError> {

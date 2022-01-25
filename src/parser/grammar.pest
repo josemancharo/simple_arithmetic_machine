@@ -33,15 +33,18 @@ UnaryOperation = _{ Neg | BitCompliment | Not }
     BitCompliment = { "~" }
     Not = { "!" }
 
+TernaryOperation = _{ ConditionalOperator }
+    ConditionalOperator = { "?" ~ Expression ~ ":" ~ Expression }
+
 FunctionInvocation = { FunctionName ~ "(" ~ Arguments ~ ")" }
 Arguments = _{ Expression ~ ( "," ~ Expression )* }
 
 FunctionName = { Identifier }
 
-Expression = { Term ~ (Operation ~ Term)* }
+Expression = { Term ~ ((Operation ~ Term) | TernaryOperation)* }
 Term = _{ UnaryOperation? ~ (ValidTermItem | "(" ~ Expression ~ ")") }
 
-ValidTermItem = _{ Number | FunctionInvocation | Variable | PeekStack }
+ValidTermItem = _{  Number | FunctionInvocation | Variable | PeekStack }
 
 Variable = { Identifier }
 PeekStack = { "$" }
