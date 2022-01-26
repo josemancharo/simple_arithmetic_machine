@@ -1,10 +1,9 @@
-use crate::errors::SamError;
-use crate::interpreter::virtual_machine::SamVM;
+use sam_library::*;
 use nu_ansi_term::Color::{Green, Red};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
-use crate::parser;
+use sam_library::parser;
 
 pub fn run_repl() -> Result<(), SamError> {
     let mut history: Vec<String> = vec![];
@@ -29,11 +28,12 @@ pub fn run_repl() -> Result<(), SamError> {
 
                 let output = parser::parse_input(line.as_str()).and_then(|output| {
                     vm.interpret(output).and_then(|real| {
-                        Ok(println!("{}", Green.paint(real.to_string())))
+                        println!("{}", Green.paint(real.to_string()));
+                        Ok({})
                     })
                 });
                 if let Err(e) = output {
-                    eprintln!("Error: {:?}", Red.paint(e.to_string()));
+                    eprintln!("Error: {}", Red.paint(e.to_string()));
                 }
 
                 history.push(line);

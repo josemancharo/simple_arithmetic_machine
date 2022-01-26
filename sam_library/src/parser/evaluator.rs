@@ -30,7 +30,7 @@ impl SamEvaluator {
     }
 
     fn push_output(&mut self, op: Operation) {
-        self.output.push(op)
+        self.output.push(op);
     }
 
     fn pop_op(&mut self) -> Option<Operation> {
@@ -50,8 +50,11 @@ impl SamEvaluator {
         }
     }
 
-    fn end_of_input(&mut self){
+    fn end_of_input(&mut self) {
         while let Some(op) = self.pop_op() {
+            if op == Operation::StartBlock {
+                continue;
+            }
             self.push_output(op)
         }
     }
@@ -78,6 +81,9 @@ impl SamEvaluator {
                 break;
             }
             let op = self.pop_op().unwrap();
+            if op == Operation::StartBlock {
+                break;
+            }
             self.push_output(op);
         }
     }
@@ -99,8 +105,43 @@ impl SamEvaluator {
             }
             SamRule::Float => {
                 let x = pair.as_str().parse::<f64>()?;
-                self.push_output(Operation::Const(x));
+                self.push_output(Operation::Float(x));
             }
+            SamRule::Integer => {
+                let x = pair.as_str().replace("_", "").parse::<i64>()?;
+                self.push_output(Operation::Int(x));
+            }
+            SamRule::Hexadecimal => {
+                let x = i64::from_str_radix(
+                    pair.as_str()
+                        .trim_start_matches("0x")
+                        .replace("_", "")
+                        .as_str(),
+                    16,
+                )?;
+                self.push_output(Operation::Int(x));
+            }
+            SamRule::Octal => {
+                let x = i64::from_str_radix(
+                    pair.as_str()
+                        .trim_start_matches("0o")
+                        .replace("_", "")
+                        .as_str(),
+                    8,
+                )?;
+                self.push_output(Operation::Int(x));
+            }
+            SamRule::Binary => {
+                let x = i64::from_str_radix(
+                    pair.as_str()
+                        .trim_start_matches("0b")
+                        .replace("_", "")
+                        .as_str(),
+                    2,
+                )?;
+                self.push_output(Operation::Int(x));
+            }
+            SamRule::PeekStack => self.push_output(Operation::PeekStack),
             SamRule::Variable => {
                 let key = hash_str(pair.as_str().trim());
                 self.push_output(Operation::LoadVar(key));
@@ -125,14 +166,21 @@ impl SamEvaluator {
             SamRule::FunctionDeclaration => {
                 self.declare_function(pair)?;
             }
-            SamRule::Neg => self.push_op(Operation::Neg),
             SamRule::Not => self.push_op(Operation::Not),
+            SamRule::Neg => self.push_op(Operation::Neg),
+            SamRule::ConditionalOperator => {
+                self.end_of_input();
+                self.match_inner_pairs(pair)?;
+                self.push_op(Operation::Conditional)
+            },
+            SamRule::BitCompliment => self.push_op(Operation::BitCompliment),
             _ => {
                 if let Some(op) = match_diad_op(pair.as_rule()) {
                     self.output_superior_ops(&op);
                     self.push_op(op);
                 }
             }
+            
         }
         Ok({})
     }
