@@ -82,7 +82,7 @@ impl SamVM {
             Operation::LeftShift => self.diadic_op(|a, b| a << b)?,
             Operation::Neg => self.monadic_op(|x| -x)?,
             Operation::BitCompliment => self.monadic_op(|x| !x)?,
-            Operation::Not => self.monadic_op(|x| x ^ Real::Int(1))?,
+            Operation::Not => self.monadic_op(|x| if x == Real::Int(0) { Real::Int(1) } else { Real::Int(0) })?,
             Operation::PeekStack => {
                 let value = self.pop_stack()?;
                 self.push_stack(value);
