@@ -1,5 +1,4 @@
-use sam_library::errors::SamError;
-use sam_library::interpreter::virtual_machine::SamVM;
+use sam_library::*;
 use nu_ansi_term::Color::{Green, Red};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
