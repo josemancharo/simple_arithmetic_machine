@@ -9,7 +9,9 @@ pub fn run_repl() -> Result<(), SamError> {
     let mut history: Vec<String> = vec![];
     let mut vm = SamVM::new();
     let mut rl = Editor::<()>::new();
-    nu_ansi_term::enable_ansi_support().expect("No ANSI support");
+
+    #[cfg(target_os = "windows")] nu_ansi_term::enable_ansi_support().expect("No ANSI support");
+
     let current_exe = std::env::current_exe()?;
     let exe_path = current_exe.parent().unwrap();
     let history_path = exe_path.join("repl_history.txt");
