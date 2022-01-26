@@ -1,10 +1,10 @@
-use crate::errors::SamError;
-use crate::interpreter::virtual_machine::SamVM;
+use sam_library::errors::SamError;
+use sam_library::interpreter::virtual_machine::SamVM;
 use nu_ansi_term::Color::{Green, Red};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
-use crate::parser;
+use sam_library::parser;
 
 pub fn run_repl() -> Result<(), SamError> {
     let mut history: Vec<String> = vec![];
