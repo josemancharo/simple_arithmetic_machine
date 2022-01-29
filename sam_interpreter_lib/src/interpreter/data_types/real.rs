@@ -1,9 +1,12 @@
-use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Sub, Shr, Shl, Not, Neg};
+use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
+
+use num_rational::Rational64;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Real {
     Float(f64),
     Int(i64),
+    Rational(Rational64),
 }
 
 impl Add for Real {
@@ -13,10 +16,23 @@ impl Add for Real {
             Real::Float(x) => match other {
                 Real::Float(y) => Real::Float(x + y),
                 Real::Int(y) => Real::Float(x + (y as f64)),
+                Real::Rational(y) => {
+                    let (numer, denom) = y.into();
+                    Real::Float(x + ((numer as f64) / (denom as f64)))
+                }
             },
             Real::Int(x) => match other {
                 Real::Float(y) => Real::Float((x as f64) + y),
                 Real::Int(y) => Real::Int(x + y),
+                Real::Rational(y) => Real::Rational(Rational64::new(x, 1) + y),
+            },
+            Real::Rational(x) => match other {
+                Real::Float(y) => {
+                    let (numer, denom) = x.into();
+                    Real::Float(((numer as f64) / (denom as f64)) + y)
+                }
+                Real::Int(y) => Real::Rational(x + y),
+                Real::Rational(y) => Real::Rational(x + y),
             },
         }
     }
@@ -29,10 +45,23 @@ impl Sub for Real {
             Real::Float(x) => match other {
                 Real::Float(y) => Real::Float(x - y),
                 Real::Int(y) => Real::Float(x - (y as f64)),
+                Real::Rational(y) => {
+                    let (numer, denom) = y.into();
+                    Real::Float(x - ((numer as f64) / (denom as f64)))
+                }
             },
             Real::Int(x) => match other {
                 Real::Float(y) => Real::Float((x as f64) - y),
                 Real::Int(y) => Real::Int(x - y),
+                Real::Rational(y) => Real::Rational(Rational64::new(x, 1) - y),
+            },
+            Real::Rational(x) => match other {
+                Real::Float(y) => {
+                    let (numer, denom) = x.into();
+                    Real::Float(((numer as f64) / (denom as f64)) - y)
+                }
+                Real::Int(y) => Real::Rational(x - y),
+                Real::Rational(y) => Real::Rational(x - y),
             },
         }
     }
@@ -45,10 +74,23 @@ impl Mul for Real {
             Real::Float(x) => match other {
                 Real::Float(y) => Real::Float(x * y),
                 Real::Int(y) => Real::Float(x * (y as f64)),
+                Real::Rational(y) => {
+                    let (numer, denom) = y.into();
+                    Real::Float(x * ((numer as f64) / (denom as f64)))
+                }
             },
             Real::Int(x) => match other {
                 Real::Float(y) => Real::Float((x as f64) * y),
                 Real::Int(y) => Real::Int(x * y),
+                Real::Rational(y) => Real::Rational(Rational64::new(x, 1) * y),
+            },
+            Real::Rational(x) => match other {
+                Real::Float(y) => {
+                    let (numer, denom) = x.into();
+                    Real::Float(((numer as f64) / (denom as f64)) * y)
+                }
+                Real::Int(y) => Real::Rational(x * y),
+                Real::Rational(y) => Real::Rational(x * y),
             },
         }
     }
@@ -61,10 +103,23 @@ impl Div for Real {
             Real::Float(x) => match other {
                 Real::Float(y) => Real::Float(x / y),
                 Real::Int(y) => Real::Float(x / (y as f64)),
+                Real::Rational(y) => {
+                    let (numer, denom) = y.into();
+                    Real::Float(x / ((numer as f64) / (denom as f64)))
+                }
             },
             Real::Int(x) => match other {
                 Real::Float(y) => Real::Float((x as f64) / y),
                 Real::Int(y) => Real::Int(x / y),
+                Real::Rational(y) => Real::Rational(Rational64::new(x, 1) / y),
+            },
+            Real::Rational(x) => match other {
+                Real::Float(y) => {
+                    let (numer, denom) = x.into();
+                    Real::Float(((numer as f64) / (denom as f64)) / y)
+                }
+                Real::Int(y) => Real::Rational(x / y),
+                Real::Rational(y) => Real::Rational(x / y),
             },
         }
     }
@@ -75,13 +130,23 @@ impl Rem for Real {
     fn rem(self, other: Self) -> Self {
         match self {
             Real::Float(x) => match other {
-                Real::Float(y) => Real::Float(x % y),
                 Real::Int(y) => Real::Float(x % (y as f64)),
+                _ => {
+                    let y: f64 = other.into();
+                    Real::Float(x % y)
+                }
             },
             Real::Int(x) => match other {
-                Real::Float(y) => Real::Float((x as f64) % y),
                 Real::Int(y) => Real::Int(x % y),
+                _ => {
+                    let y: f64 = other.into();
+                    Real::Float(x as f64 % y)
+                }
             },
+            _ => {
+                let (x, y): (f64, f64) = (self.into(), other.into());
+                Real::Float(x % y)
+            }
         }
     }
 }
@@ -91,6 +156,7 @@ impl ToString for Real {
         match &self {
             &Real::Float(x) => x.to_string(),
             &Real::Int(x) => x.to_string(),
+            &Real::Rational(x) => format!("{}/{}", x.numer(), x.denom()),
         }
     }
 }
@@ -100,6 +166,7 @@ impl Into<f64> for Real {
         match self {
             Real::Float(x) => x,
             Real::Int(x) => x as f64,
+            Real::Rational(x) => *x.numer() as f64 / *x.denom() as f64,
         }
     }
 }
@@ -107,8 +174,11 @@ impl Into<f64> for Real {
 impl Into<i64> for Real {
     fn into(self) -> i64 {
         match self {
-            Real::Float(x) => x as i64,
             Real::Int(x) => x,
+            _ => { 
+                let x: f64 = self.into();
+                x as i64 
+            },
         }
     }
 }
@@ -187,6 +257,7 @@ impl Neg for Real {
         match self {
             Real::Float(x) => Real::Float(-x),
             Real::Int(x) => Real::Int(-x),
+            Real::Rational(x) => Real::Rational(Rational64::new(-1, 1) * x),
         }
     }
 }
@@ -196,6 +267,7 @@ impl PartialEq for Real {
         match (self, other) {
             (Self::Float(l0), Self::Float(r0)) => l0 == r0,
             (Self::Int(l0), Self::Int(r0)) => l0 == r0,
+            (Self::Rational(l0), Self::Rational(r0)) => l0 == r0,
             _ => {
                 let a: f64 = self.clone().into();
                 let b: f64 = other.clone().into();

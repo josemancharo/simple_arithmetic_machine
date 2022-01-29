@@ -5,6 +5,7 @@ mod ast;
 mod algorithms;
 mod util;
 
+extern crate nalgebra as na;
 extern crate pest;
 #[macro_use]
 extern crate pest_derive;

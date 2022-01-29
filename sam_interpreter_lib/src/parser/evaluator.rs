@@ -103,13 +103,14 @@ impl SamEvaluator {
                 self.match_inner_pairs(pair)?;
                 self.end_block();
             }
-            SamRule::Float => {
-                let x = pair.as_str().parse::<f64>()?;
-                self.push_output(Operation::Float(x));
-            }
-            SamRule::Integer => {
-                let x = pair.as_str().replace("_", "").parse::<i64>()?;
-                self.push_output(Operation::Int(x));
+            SamRule::Float | SamRule::Integer => {
+                if let Ok(x) = pair.as_str().replace("_", "").parse::<i64>(){
+                    self.push_output(Operation::Int(x));
+                }
+                else {
+                    let x = pair.as_str().parse::<f64>()?;
+                    self.push_output(Operation::Float(x));
+                }
             }
             SamRule::Hexadecimal => {
                 let x = i64::from_str_radix(

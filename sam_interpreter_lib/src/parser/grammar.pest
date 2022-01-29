@@ -10,6 +10,7 @@ Number = _{ Binary | Hexadecimal | Octal | Float | Integer }
 
 Operation = _{ 
     Add 
+    | Ratio
     | Subtract 
     | Power 
     | BoolOr 
@@ -24,6 +25,7 @@ Operation = _{
     Subtract = { "-" }
     Multiply = { "*" }
     Divide   = { "/" }
+    Ratio    = { "\\" }
     Power    = { "**" }
     Modulus  = { "%" }
     Or       = { "|" }
@@ -50,7 +52,7 @@ TernaryOperation = _{ ConditionalOperator }
     ConditionalOperator = { "?" ~ Expression ~ ":" ~ Expression }
 
 FunctionInvocation = { FunctionName ~ "(" ~ Arguments ~ ")" }
-Arguments = _{ Expression ~ ( "," ~ Expression )* }
+Arguments = _{ Expression ~ ("," ~ Expression )* }
 
 FunctionName = { Identifier }
 
@@ -63,11 +65,17 @@ Variable = { Identifier }
 PeekStack = { "$" }
 
 Identifier = _{ ("_" | ASCII_ALPHA)+ ~ (ASCII_DIGIT | ASCII_ALPHA | "_")* }
-Calculation = _{ SOI ~ Statement ~ EOI }
+Calculation = _{ SOI ~ Statement ~ (NEWLINE | EOI) }
+File = _{ Calculation* }
 
-WHITESPACE = _{ " " | "\t" }
+WHITESPACE = _{ " " | "\t" | NEWLINE }
 
 Statement = _{ FunctionDeclaration | Assignment | Expression }
 Assignment = { Variable ~ "=" ~ Expression }
 FunctionDeclaration = { FunctionName ~ "(" ~ Parameters ~ ")" ~ "=" ~ Expression }
 Parameters = { Variable ~ ( "," ~ Variable )* }
+
+// Linear Algebra
+MatrixDefinition = { "[" ~ (Expression ~ ((Semicolon | Comma) ~ Expression)*)? ~ (Semicolon | Comma)? ~"]" }
+Semicolon = _{ ";" }
+Comma = _{ "," }

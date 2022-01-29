@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
+use num_rational::Rational64;
+
 use crate::{
-    algorithms::logarithms::pow,
     ast::{operations::Operation, user_functions::UserFunctionDefinition},
     errors::{ErrorWithMessage, SamError}, util::hash_str::hash_str,
 };
@@ -57,7 +58,7 @@ impl SamVM {
             Operation::Sub => self.diadic_op(|a, b| a - b)?,
             Operation::Mul => self.diadic_op(|a, b| a * b)?,
             Operation::Div => self.diadic_op(|a, b| a / b)?,
-            Operation::Pow => self.diadic_op(|a, b| pow(a, b))?,
+            Operation::Pow => self.diadic_op(|a, b| a.pow(b))?,
             Operation::Mod => self.diadic_op(|a, b| a % b)?,
             Operation::Gt => self.diadic_op(|a, b| Real::Int((a > b) as i64))?,
             Operation::Lt => self.diadic_op(|a, b| Real::Int((a < b) as i64))?,
@@ -66,6 +67,12 @@ impl SamVM {
             Operation::Eq => self.diadic_op(|a, b| Real::Int((a == b) as i64))?,
             Operation::Neq => self.diadic_op(|a, b| Real::Int((a != b) as i64))?,
             Operation::BitAnd => self.diadic_op(|a, b| a & b)?,
+            Operation::Ratio => self.diadic_op(|a, b| { 
+                match (a, b) {
+                    (Real::Int(a), Real::Int(b)) => Real::Rational(Rational64::new(a, b)),
+                    _ => a / b
+                }
+            })?,
             Operation::BoolAnd => self.diadic_op(|a, b| {
                 if a != Real::Int(0) && b != Real::Int(0) {
                     Real::Int(1)
