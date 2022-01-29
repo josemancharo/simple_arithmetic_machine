@@ -4,6 +4,7 @@ use crate::util::hash_str::hash_str;
 
 use super::data_types::Real;
 
+
 pub fn generate_constants() -> HashMap<u64, Real> {
     let mut map = HashMap::new();
     map.insert(hash_str("pi"), Real::Float(std::f64::consts::PI));

@@ -1,5 +1,6 @@
 use crate::interpreter::data_types::Real;
 
+
 pub fn sin(x: Real) -> Real {
     return match x {
         Real::Float(x) => {

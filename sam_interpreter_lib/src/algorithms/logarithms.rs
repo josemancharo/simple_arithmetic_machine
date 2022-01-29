@@ -1,5 +1,6 @@
 use crate::interpreter::data_types::Real;
 
+
 pub fn log(x: Real, y: Real) -> Real {
     let y_float = match y {
         Real::Float(x) => {

@@ -4,6 +4,7 @@ use crate::{util::hash_str::hash_str, algorithms::{trigonometry::*, logarithms::
 
 use super::data_types::Real;
 
+
 pub enum Func {
     Monad(fn (Real) -> Real),
     Diad(fn (Real, Real) -> Real),

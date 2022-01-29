@@ -1,7 +1,0 @@
-Dash = _{ "-" }
-DoubleDash = _{ "--" }
-Equals = _{ "=" }
-WHITESPACE = _{ " " | "\t" }
-
-ShortArg = {  }
-LongArg = {  }

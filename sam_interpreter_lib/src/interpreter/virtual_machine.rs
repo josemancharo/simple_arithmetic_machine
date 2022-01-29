@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     algorithms::logarithms::pow,
     ast::{operations::Operation, user_functions::UserFunctionDefinition},
-    errors::{ErrorWithMessage, SamError},
+    errors::{ErrorWithMessage, SamError}, util::hash_str::hash_str,
 };
 
 use super::{
@@ -33,6 +33,10 @@ impl SamVM {
             user_vars: vec![HashMap::new()],
             builtin_functions: setup_builtins(),
         };
+    }
+
+    pub fn register_function(&mut self, name: &str, func: Func){
+        self.builtin_functions.insert(hash_str(name.clone()), func);
     }
 
     pub fn interpret(&mut self, commands: Vec<Operation>) -> Result<Real, SamError> {
