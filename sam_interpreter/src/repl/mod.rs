@@ -29,8 +29,8 @@ pub fn run_repl() -> Result<(), SamError> {
                 rl.add_history_entry(line.as_str());
 
                 let output = parser::parse_input(line.as_str()).and_then(|output| {
-                    vm.interpret(output).and_then(|real| {
-                        println!("{}", Green.paint(real.to_string()));
+                    vm.interpret(output).and_then(|val| {
+                        println!("{}", Green.paint(val.to_string()));
                         Ok({})
                     })
                 });

@@ -11,3 +11,4 @@ pest_derive = "2.1.0"
 nalgebra = "0.30.1"
 num-rational = "0.4.0"
 num-complex = "0.4.0"
+uuid = { version = "0.8", features = ["v4"] }

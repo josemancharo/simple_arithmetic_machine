@@ -9,6 +9,12 @@ pub enum Real {
     Rational(Rational64),
 }
 
+impl Default for Real {
+    fn default() -> Self {
+        Real::Int(0)
+    }
+}
+
 impl Add for Real {
     type Output = Self;
     fn add(self, other: Self) -> Self {
@@ -110,7 +116,7 @@ impl Div for Real {
             },
             Real::Int(x) => match other {
                 Real::Float(y) => Real::Float((x as f64) / y),
-                Real::Int(y) => Real::Int(x / y),
+                Real::Int(y) => Real::Float((x as f64) / (y as f64)),
                 Real::Rational(y) => Real::Rational(Rational64::new(x, 1) / y),
             },
             Real::Rational(x) => match other {

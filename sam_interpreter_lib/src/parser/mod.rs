@@ -1,6 +1,7 @@
 mod grammar;
 mod match_diad_op;
 mod evaluator;
+mod match_pair;
 
 use pest::Parser;
 
@@ -21,14 +22,14 @@ mod test {
     fn test_shunting_yard(){
         let output = super::parse_input("1 + 2 * 2").unwrap();
         println!("{:?}", &output);
-        assert!(output == vec![Operation::Float(1.0), Operation::Float(2.0), Operation::Float(2.0), Operation::Mul, Operation::Add]);
+        assert!(output == vec![Operation::Int(1), Operation::Int(2), Operation::Int(2), Operation::Mul, Operation::Add]);
 
         let output = super::parse_input("2 ** 3 * 4 + 8 % 3 + (8 * 8)").unwrap();
         println!("{:?}", &output);
         assert!(output == vec![
-            Operation::Float(2.0), Operation::Float(3.0), Operation::Pow, 
-            Operation::Float(4.0), Operation::Mul, 
-            Operation::Float(8.0), Operation::Float(3.0), Operation::Mod, Operation::Add, 
-            Operation::Float(8.0), Operation::Float(8.0), Operation::Mul, Operation::Add]);
+            Operation::Int(2), Operation::Int(3), Operation::Pow, 
+            Operation::Int(4), Operation::Mul, 
+            Operation::Int(8), Operation::Int(3), Operation::Mod, Operation::Add, 
+            Operation::Int(8), Operation::Int(8), Operation::Mul, Operation::Add]);
     }
 }

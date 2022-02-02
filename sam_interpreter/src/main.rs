@@ -1,4 +1,3 @@
-
 use clap::StructOpt;
 use cli::SamArgs;
 use sam_library::errors::SamError;
@@ -9,7 +8,7 @@ mod repl;
 
 
 fn main() -> Result<(), SamError> {
-   let args = SamArgs::parse();
+   let _args = SamArgs::parse();
    run_repl()?; 
    Ok({})
 }
