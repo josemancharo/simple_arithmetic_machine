@@ -14,6 +14,10 @@ impl ErrorWithMessage {
         }
     }
 
+    pub fn default() -> Box<ErrorWithMessage>  {
+        Self::new_box("An unhandled error has occurred")
+    }
+
     pub fn new_box(message: &str) -> Box<ErrorWithMessage> {
         Box::new(ErrorWithMessage::new(message.to_owned()))
     }

@@ -1,7 +1,7 @@
 
 use std::cmp::Ordering;
 
-use super::user_functions::UserFunctionDefinition;
+use super::{user_functions::UserFunctionDefinition, ast_block::MatrixDefinition};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operation {
@@ -36,7 +36,8 @@ pub enum Operation {
     LoadVar(u64),
     StoreVar(u64),
     CallFunc(u64),
-    StoreFunc(u64, UserFunctionDefinition)
+    StoreFunc(u64, UserFunctionDefinition),
+    DefineMatrix(MatrixDefinition)
 }
 
 impl Operation {

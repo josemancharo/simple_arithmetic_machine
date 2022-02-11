@@ -59,7 +59,7 @@ FunctionName = { Identifier }
 Expression = { Term ~ ((Operation ~ Term) | TernaryOperation)* }
 Term = _{ UnaryOperation? ~ (ValidTermItem | "(" ~ Expression ~ ")") }
 
-ValidTermItem = _{  Number | FunctionInvocation | Variable | PeekStack }
+ValidTermItem = _{  Number | FunctionInvocation | Variable | PeekStack | MatrixDefinition }
 
 Variable = { Identifier }
 PeekStack = { "$" }
@@ -81,5 +81,5 @@ AnonymousFunction = { (("(" ~ Parameters ~ ")") | (Parameter)) ~ "->" ~ Expressi
 
 // Linear Algebra
 MatrixDefinition = { "[" ~ (Expression ~ ((Semicolon | Comma) ~ Expression)*)? ~ (Semicolon | Comma)? ~"]" }
-Semicolon = _{ ";" }
-Comma = _{ "," }
+Semicolon = { ";" }
+Comma = { "," }

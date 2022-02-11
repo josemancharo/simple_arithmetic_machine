@@ -1,6 +1,6 @@
 use pest::iterators::Pair;
 
-use crate::{ast::operations::Operation, util::hash_str::hash_str, SamError};
+use crate::{ast::{operations::Operation, ast_block::MatrixDefinition}, util::hash_str::hash_str, SamError, errors::ErrorWithMessage};
 
 use super::{evaluator::SamEvaluator, grammar::SamRule, match_diad_op::match_diad_op};
 
@@ -58,7 +58,7 @@ impl SamEvaluator {
             }
             SamRule::Assignment => {
                 let mut inner = pair.into_inner();
-                let name = inner.next().unwrap().as_str().trim();
+                let name = inner.next().ok_or(ErrorWithMessage::default())?.as_str().trim();
                 while let Some(pair) = inner.next() {
                     self.match_pair(pair)?;
                 }
@@ -67,7 +67,7 @@ impl SamEvaluator {
 
             SamRule::FunctionInvocation => {
                 let mut inner = pair.into_inner();
-                let key = hash_str(inner.next().unwrap().as_str());
+                let key = hash_str(inner.next().ok_or(ErrorWithMessage::default())?.as_str());
                 while let Some(pair) = inner.next() {
                     self.match_pair(pair)?;
                 }
@@ -84,9 +84,28 @@ impl SamEvaluator {
                 self.push_op(Operation::Conditional)
             },
             SamRule::BitCompliment => self.push_op(Operation::BitCompliment),
+            SamRule::MatrixDefinition => {
+                let mut inner = pair.into_inner();
+                let mut definition: MatrixDefinition = vec![vec![]];
+                let mut row: usize = 0;
+                while let Some(pair) = inner.next() {
+                    match pair.as_rule() {
+                        SamRule::Comma => {}
+                        SamRule::Semicolon => {
+                            row += 1;
+                            definition.push(vec![]);
+                        }
+                        _  => {
+                            let ops = SamEvaluator::match_pairs_static(&mut pair.into_inner())?;
+                            definition[row].push(ops)
+                        }
+                    }
+                }
+                self.push_op(Operation::DefineMatrix(definition));    
+            }
             _ => {
                 if let Some(op) = match_diad_op(pair.as_rule()) {
-                    self.output_superior_ops(&op);
+                    self.output_superior_ops(&op)?;
                     self.push_op(op);
                 }
             }

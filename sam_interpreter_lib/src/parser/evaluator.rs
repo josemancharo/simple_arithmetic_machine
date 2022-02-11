@@ -2,7 +2,7 @@ use pest::iterators::{Pair, Pairs};
 
 use crate::{
     ast::{ast_block::AstBlock, operations::Operation, user_functions::UserFunctionDefinition},
-    errors::SamError,
+    errors::{SamError, ErrorWithMessage},
     util::hash_str::hash_str,
 };
 
@@ -62,12 +62,12 @@ impl SamEvaluator {
     pub(crate) fn declare_function(&mut self, pair: Pair<SamRule>) -> Result<(), SamError> {
         let mut inner = pair.into_inner();
         let mut func_def = UserFunctionDefinition::new();
-        let name = inner.next().unwrap().as_str().trim();
-        let params = inner.next().unwrap().into_inner();
+        let name = inner.next().ok_or(ErrorWithMessage::default())?.as_str().trim();
+        let params = inner.next().ok_or(ErrorWithMessage::default())?.into_inner();
         for param in params {
             func_def.parameters.push(hash_str(param.as_str()));
         }
-        let mut body = inner.next().unwrap().into_inner();
+        let mut body = inner.next().ok_or(ErrorWithMessage::default())?.into_inner();
         let mut engine = SamEvaluator::new();
         let output = engine.eval(&mut body)?;
         func_def.operations = output;
@@ -75,17 +75,18 @@ impl SamEvaluator {
         Ok({})
     }
 
-    pub(crate) fn output_superior_ops(&mut self, op1: &Operation) {
+    pub(crate) fn output_superior_ops(&mut self, op1: &Operation) -> Result<(), SamError> {
         while let Some(op2) = self.operator_stack.last() {
             if op1 == &Operation::StartBlock || op1 > op2 {
                 break;
             }
-            let op = self.pop_op().unwrap();
+            let op = self.pop_op().ok_or(ErrorWithMessage::default())?;
             if op == Operation::StartBlock {
                 break;
             }
             self.push_output(op);
         }
+        Ok({})
     }
 
     pub(crate) fn match_inner_pairs(&mut self, pair: Pair<SamRule>) -> Result<(), SamError> {
@@ -96,5 +97,9 @@ impl SamEvaluator {
         Ok({})
     }
 
-    
+    pub fn match_pairs_static(pairs: &mut Pairs<SamRule>) -> Result<Vec<Operation>, SamError> {
+        let mut evaluator = SamEvaluator::new();
+        evaluator.eval(pairs)?;
+        return Ok(evaluator.output);
+    }
 }
