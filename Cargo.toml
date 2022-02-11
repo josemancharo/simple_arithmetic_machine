@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "sam_binary",
-    "sam_library"
+    "sam_interpreter",
+    "sam_interpreter_lib"
 ]
