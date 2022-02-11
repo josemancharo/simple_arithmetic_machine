@@ -1,10 +1,14 @@
 use std::collections::HashMap;
 
+use nalgebra::{DMatrix, Dynamic, VecStorage};
 use num_rational::Rational64;
 
-use crate::{SamVM, ast::operations::Operation, errors::ErrorWithMessage, SamError};
+use crate::{ast::operations::Operation, errors::ErrorWithMessage, SamError, SamVM};
 
-use super::{data_types::{Real, SamValue}, builtin_functions::Func};
+use super::{
+    builtin_functions::Func,
+    data_types::{Real, SamObject, SamValue},
+};
 
 impl SamVM {
     pub fn interpret(&mut self, commands: Vec<Operation>) -> Result<SamValue, SamError> {
@@ -34,11 +38,9 @@ impl SamVM {
             Operation::Eq => self.diadic_op(|a, b| Real::Int((a == b) as i64))?,
             Operation::Neq => self.diadic_op(|a, b| Real::Int((a != b) as i64))?,
             Operation::BitAnd => self.diadic_op(|a, b| a & b)?,
-            Operation::Ratio => self.diadic_op(|a, b| { 
-                match (a, b) {
-                    (Real::Int(a), Real::Int(b)) => Real::Rational(Rational64::new(a, b)),
-                    _ => a / b
-                }
+            Operation::Ratio => self.diadic_op(|a, b| match (a, b) {
+                (Real::Int(a), Real::Int(b)) => Real::Rational(Rational64::new(a, b)),
+                _ => a / b,
             })?,
             Operation::BoolAnd => self.diadic_op(|a, b| {
                 if a != Real::Int(0) && b != Real::Int(0) {
@@ -60,7 +62,13 @@ impl SamVM {
             Operation::LeftShift => self.diadic_op(|a, b| a << b)?,
             Operation::Neg => self.monadic_op(|x| -x)?,
             Operation::BitCompliment => self.monadic_op(|x| !x)?,
-            Operation::Not => self.monadic_op(|x| if x == Real::Int(0) { Real::Int(1) } else { Real::Int(0) })?,
+            Operation::Not => self.monadic_op(|x| {
+                if x == Real::Int(0) {
+                    Real::Int(1)
+                } else {
+                    Real::Int(0)
+                }
+            })?,
             Operation::PeekStack => {
                 let value = self.pop_stack()?;
                 self.push_stack(value);
@@ -122,6 +130,33 @@ impl SamVM {
             Operation::StoreFunc(key, func) => {
                 self.user_functions.insert(key, func);
                 self.push_stack(SamValue::default());
+            }
+            Operation::DefineMatrix(def) => {
+                println!("{:?}", def);
+                let mut matrix: Vec<Vec<f64>> = vec![vec![]];
+                for (row_num, row) in def.iter().enumerate() {
+                    matrix.push(vec![]);
+                    for cell in row {
+                        for op in cell {
+                            self.match_command(op.clone())?;
+                        }
+                        let val = self.pop_stack()?;
+                        if let SamValue::Real(real) = val {
+                            let f64val: f64 = real.into();
+                            matrix[row_num].push(f64val);
+                        } else {
+                            matrix[row_num].push(0_f64);
+                        }
+                    }
+                }
+                let num_columns = matrix.first().ok_or(ErrorWithMessage::default())?.len();
+                let num_rows = matrix.len() - 1;
+                let data = matrix.iter().flatten().map(|x| *x).collect();
+
+                let vec_storage =
+                    VecStorage::new(Dynamic::new(num_rows), Dynamic::new(num_columns), data);
+                let matrix: DMatrix<f64> = DMatrix::from_vec_storage(vec_storage);
+                self.heap_alloc(SamObject::Matrix(matrix));
             }
             _ => return Err(ErrorWithMessage::new_box("stack empty!")),
         }
